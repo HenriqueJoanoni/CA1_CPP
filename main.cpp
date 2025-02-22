@@ -5,6 +5,8 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include <iomanip>
+#include <limits>
 
 using namespace std;
 
@@ -44,51 +46,61 @@ void readCSV(string fileName, vector<Games> &games) {
     }
 }
 
-/** FUNCTION 1 */
-void displayGames(const vector<Games>& games) {
-    for (const auto& game : games) {
-        cout << "Name: " << game.name << "\n"
-             << "  Year: " << game.releaseYear
-             << ", Price: $" << game.price
-             << ", Copies Sold: " << game.copiesSold
-             << "M\n  Developer: " << game.developerCompany << "\n\n";
+void displayGames(const vector<Games> &games) {
+    if (games.empty()) {
+        cout << "No games found :(\n";
+        return;
     }
+
+    cout << left << fixed << setprecision(2);
+    cout << setw(35) << "Game Name"
+            << setw(8) << "Year"
+            << setw(12) << "Price"
+            << setw(15) << "Copies Sold"
+            << "Developer Company\n";
+
+    cout << string(80, '-') << endl;
+
+    for (const auto &game: games) {
+        cout << setw(35) << game.name.substr(0, 32)
+                << setw(8) << game.releaseYear
+                << "€" << setw(11) << game.price
+                << setw(15) << (to_string(game.copiesSold) + "m")
+                << game.developerCompany << endl;
+    }
+    cout << endl;
 }
 
-/** FUNCTION 2 */
-int searchByName(const vector<Games>& games, const string& name) {
+int searchByName(const vector<Games> &games, const string &name) {
     for (size_t i = 0; i < games.size(); ++i) {
         if (games[i].name == name) return i;
     }
     return -1;
 }
 
-/** FUNCTION 3 */
-map<string, int> countByDeveloper(const vector<Games>& games) {
+map<string, int> countByDeveloper(const vector<Games> &games) {
     map<string, int> counts;
-    for (const auto& game : games) {
+    for (const auto &game: games) {
         counts[game.developerCompany]++;
     }
     return counts;
 }
 
-/** FUNCTION 4 */
-void displayByDeveloper(const vector<Games>& games, const string& developer) {
+void displayByDeveloper(const vector<Games> &games, const string &developer) {
     vector<Games> results;
-    for (const auto& game : games) {
+    for (const auto &game: games) {
         if (game.developerCompany == developer) {
             results.push_back(game);
         }
     }
     if (results.empty()) {
-        cout << "No games found from developer: " << developer << endl;
+        cout << "No games from " << developer << endl;
     } else {
         displayGames(results);
     }
 }
 
-/** FUNCTION 5 */
-int calculateSalesStats(const vector<Games>& games, Games& maxGame, Games& minGame) {
+int calculateSalesStats(const vector<Games> &games, Games &maxGame, Games &minGame) {
     if (games.empty()) return -1;
 
     int maxSales = games[0].copiesSold;
@@ -96,7 +108,7 @@ int calculateSalesStats(const vector<Games>& games, Games& maxGame, Games& minGa
     int total = 0;
     maxGame = minGame = games[0];
 
-    for (const auto& game : games) {
+    for (const auto &game: games) {
         total += game.copiesSold;
         if (game.copiesSold > maxSales) {
             maxSales = game.copiesSold;
@@ -110,71 +122,122 @@ int calculateSalesStats(const vector<Games>& games, Games& maxGame, Games& minGa
     return total / games.size();
 }
 
-/** FUNCTION 6 */
-vector<Games> searchPartialMatch(const vector<Games>& games, const string& text) {
+vector<Games> searchPartialMatch(const vector<Games> &games, const string &text) {
     vector<Games> matches;
-    for (auto it = games.begin(); it != games.end(); ++it) {
-        if (it->name.find(text) != string::npos) {
-            matches.push_back(*it);
+    for (const auto &game: games) {
+        if (game.name.find(text) != string::npos) {
+            matches.push_back(game);
         }
     }
     return matches;
 }
 
-/** FUNCTION 7 */
 void displaySortedByPrice(vector<Games> games) {
-    sort(games.begin(), games.end(), [](const Games& a, const Games& b) {
+    sort(games.begin(), games.end(), [](const Games &a, const Games &b) {
         return a.price > b.price;
     });
     displayGames(games);
+}
+
+void showMenu() {
+    cout << "\n* * * * * GAME DATABASE MENU * * * * *\n"
+            << "1. Display all games\n"
+            << "2. Search game by name\n"
+            << "3. Show game count by developer\n"
+            << "4. Filter games by developer\n"
+            << "5. Show sales statistics\n"
+            << "6. Search games by partial name\n"
+            << "7. Display games sorted by price\n"
+            << "8. Exit\n"
+            << "Enter your choice (1-8): ";
 }
 
 int main() {
     vector<Games> games;
     readCSV("games_data.csv", games);
 
-    /** DISPLAY ALL GAMES */
-    cout << "* * * All Games * * *\n";
-    displayGames(games);
+    int choice;
+    do {
+        showMenu();
+        cin >> choice;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-    /** SEARCH FOR A GAME */
-    // string searchTerm = "Call of Duty: Modern Warfare II";
-    // int index = searchByName(games, searchTerm);
-    // cout << "* * * Search Results * * *\n";
-    // if (index != -1) {
-    //     cout << "Game found at index " << index << ":\n";
-    //     cout << games[index].name << " (" << games[index].releaseYear << ")\n";
-    // } else {
-    //     cout << "Game not found: " << searchTerm << "\n";
-    // }
-
-    /** COUNT BY DEVELOPER */
-    // cout << "\n* * * Developer Counts * * *\n";
-    // auto devCounts = countByDeveloper(games);
-    // for (const auto& entry : devCounts) {
-    //     cout << entry.first << ": " << entry.second << " games\n";
-    // }
-
-    /** FILTER BY DEVELOPER */
-    // cout << "\n* * * Games by Nintendo * * *\n";
-    // displayByDeveloper(games, "Nintendo");
-
-    /** SALES STATISTICS */
-    // Games maxGame, minGame;
-    // int avg = calculateSalesStats(games, maxGame, minGame);
-    // cout << "\n* * * Sales Statistics * * *\n";
-    // cout << "Average copies sold: " << avg << "M\n"
-    //      << "Best Seller: " << maxGame.name << " (" << maxGame.copiesSold << "M)\n"
-    //      << "Lowest Seller: " << minGame.name << " (" << minGame.copiesSold << "M)\n";
-
-    /** PARTIAL MATCH SEARCH */
-    // cout << "\n* * * Games with 'The' in title * * *\n";
-    // auto textMatches = searchPartialMatch(games, "The");
-    // displayGames(textMatches);
-
-    /** SORT BY PRICE */
-    // cout << "\n* * * Games Sorted by Price * * *\n";
-    // displaySortedByPrice(games);
+        switch (choice) {
+            case 1: {
+                cout << "\nAll Games:\n";
+                displayGames(games);
+                break;
+            }
+            case 2: {
+                string name;
+                cout << "Enter game name to search: ";
+                getline(cin, name);
+                int index = searchByName(games, name);
+                if (index != -1) {
+                    cout << "\nGame Found:\n";
+                    displayGames({games[index]});
+                } else {
+                    cout << "Game not found!\n";
+                }
+                break;
+            }
+            case 3: {
+                auto counts = countByDeveloper(games);
+                cout << "\nGames per Developer:\n";
+                cout << left << setw(25) << "Developer" << "Game Count\n";
+                cout << string(35, '-') << endl;
+                for (const auto &entry: counts) {
+                    cout << setw(25) << entry.first << entry.second << endl;
+                }
+                cout << endl;
+                break;
+            }
+            case 4: {
+                string developer;
+                cout << "Enter developer name: ";
+                getline(cin, developer);
+                cout << "\nGames From " << developer << ":\n";
+                displayByDeveloper(games, developer);
+                break;
+            }
+            case 5: {
+                Games maxGame, minGame;
+                int avg = calculateSalesStats(games, maxGame, minGame);
+                if (avg != -1) {
+                    cout << "\nSales Statistics:\n"
+                            << "Average copies sold: " << avg << "M\n"
+                            << "Highest seller: " << maxGame.name << " (" << maxGame.copiesSold << "M)\n"
+                            << "Lowest seller: " << minGame.name << " (" << minGame.copiesSold << "M)\n";
+                } else {
+                    cout << "No sales data available\n";
+                }
+                break;
+            }
+            case 6: {
+                string text;
+                cout << "Enter search text: ";
+                getline(cin, text);
+                auto matches = searchPartialMatch(games, text);
+                cout << "\nSearch results:\n";
+                if (!matches.empty()) {
+                    displayGames(matches);
+                } else {
+                    cout << "No results found\n";
+                }
+                break;
+            }
+            case 7: {
+                cout << "\nGames Sorted by Price (Descending Order):\n";
+                displaySortedByPrice(games);
+                break;
+            }
+            case 8:
+                cout << "Finishing execution\n";
+                break;
+            default:
+                cout << "Invalid option :( Please try again.\n";
+        }
+    } while (choice != 8);
 
     return 0;
 }
