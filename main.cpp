@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <limits>
-
+#include <windows.h>
 using namespace std;
 
 struct Games {
@@ -60,11 +60,12 @@ void displayGames(const vector<Games> &games) {
             << "Developer Company\n";
 
     cout << string(80, '-') << endl;
-
+    SetConsoleOutputCP(1252);
     for (const auto &game: games) {
         cout << setw(35) << game.name.substr(0, 32)
                 << setw(8) << game.releaseYear
-                << "€" << setw(11) << game.price
+                << (char) 128 <<
+                setw(11) << game.price
                 << setw(15) << (to_string(game.copiesSold) + "m")
                 << game.developerCompany << endl;
     }
